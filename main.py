@@ -3,12 +3,12 @@ import time
 from flask import Flask
 from threading import Thread
 
-# === CONFIGURATION ===
+
 TELEGRAM_TOKEN = "8199243667:AAFV-tG72ngWGUxsJELA3aBTxhukAKtEcPU"
 TELEGRAM_CHAT_ID = "7041542838"
 TAAPI_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjbHVlIjoiNjgyNTYwNjE4MDZmZjE2NTFlMWFkY2M4IiwiaWF0IjoxNzQ3Mjc5OTY5LCJleHAiOjMzMjUxNzQzOTY5fQ.B94s3TVeV0EI9_kDHqOHolWFUaMQ54wbVDh3uf8-AQU"  
 
-# === KEEP ALIVE (for UptimeRobot or Railway) ===
+
 app = Flask(__name__)
 
 @app.route('/')
@@ -22,7 +22,7 @@ def keep_alive():
     t = Thread(target=run)
     t.start()
 
-# === TELEGRAM FUNCTION ===
+
 def send_telegram_message(message):
     url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
     payload = {"chat_id": TELEGRAM_CHAT_ID, "text": message}
@@ -32,7 +32,7 @@ def send_telegram_message(message):
     except Exception as e:
         print("Telegram error:", e)
 
-# === FETCH CANDLES ===
+
 def fetch_candles(symbol="EURUSD", interval="5", limit=150):
     url = f"https://api.taapi.io/candles?secret={TAAPI_KEY}&exchange=fxcm&symbol={symbol}&interval={interval}&limit={limit}"
     try:
@@ -43,7 +43,7 @@ def fetch_candles(symbol="EURUSD", interval="5", limit=150):
         print("Fetch error:", e)
     return []
 
-# === DETECTION LOGIC ===
+
 def detect_liquidity_and_ifvg(candles):
     if len(candles) < 10:
         return False
@@ -54,16 +54,17 @@ def detect_liquidity_and_ifvg(candles):
     fair_value_gap = abs(prev["close"] - recent["open"]) > 0.1
     return body_break and wick_sweep and fair_value_gap
 
-# === MAIN LOOP ===
+
 def main_loop():
     send_telegram_message("🚀 Railway bot started successfully.")
+    symbols = ["EURUSD", "XAUUSD", "GBPUSD"]  
     while True:
-        candles = fetch_candles()
-        if detect_liquidity_and_ifvg(candles):
-            send_telegram_message("📊 EURUSD: IFVG + Liquidity Sweep + MSS Detected!")
+        for symbol in symbols:
+            candles = fetch_candles(symbol=symbol)
+            if detect_liquidity_and_ifvg(candles):
+                send_telegram_message(f"📊 {symbol}: IFVG + Liquidity Sweep + MSS Detected!")
         time.sleep(300)  
 
-# === START EVERYTHING ===
 if __name__ == "__main__":
     keep_alive()
     time.sleep(1)
