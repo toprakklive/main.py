@@ -55,3 +55,8 @@ def main_loop():
 
 if __name__ == "__main__":
     main_loop()
+    
+ if __name__ == "__main__":
+    send_telegram_message("Test mesajı: Bot Railway'de çalışıyor!")
+    main_loop()
+
